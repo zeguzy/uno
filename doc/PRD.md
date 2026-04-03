@@ -1,8 +1,8 @@
 # MBTI Personality Test Website — Product Requirements Document
 
-> Version: 1.0.0
+> Version: 1.1.0
 > Date: 2026-04-03
-> Status: Draft
+> Status: Confirmed
 
 ---
 
@@ -321,7 +321,7 @@ Get last sync status and metadata.
 
 ## 5. Page Specifications
 
-### 5.1 Home Page (`/`)
+### 5.1 Home Page (`/`) — *Deferred to Phase 6*
 
 **Purpose**: Landing page with product introduction and call-to-action.
 
@@ -337,7 +337,7 @@ Get last sync status and metadata.
 - Floating icons: Infinite gentle bob (Framer Motion `animate={{ y: [0, -10, 0] }}`, `repeat: Infinity`)
 - CTA Button: Pulse animation on hover
 
-### 5.2 Test Page (`/test`)
+### 5.2 Test Page (`/test`) — *MVP Core*
 
 **Purpose**: Core quiz interface. One question per screen with smooth transitions.
 
@@ -410,7 +410,7 @@ interface TestStore {
 
 **Persistence**: Answers saved to `localStorage` on each selection. On page reload, resume from last answered question.
 
-### 5.3 Result Page (`/result/:id`)
+### 5.3 Result Page (`/result/:id`) — *MVP Core*
 
 **Purpose**: Display personality test results with rich visualizations.
 
@@ -439,7 +439,7 @@ interface TestStore {
 - Trait bars: `motion.div` with `initial={{ width: 0 }}` → `animate={{ width: "${pct}%" }}`
 - Share: Material Design `Snackbar` with "Link copied!" feedback
 
-### 5.4 History Page (`/history`)
+### 5.4 History Page (`/history`) — *Deferred to Phase 6*
 
 **Purpose**: Show past test results for comparison.
 
@@ -696,42 +696,66 @@ mbti-app/
 
 ## 12. Milestone Plan
 
-### Phase 1: Foundation (Week 1)
+> **Confirmed Scope (v1.1)**: MVP 只包含测试页 + 结果页。首页、历史页后续迭代。
+> **Deployment**: 本地开发为主，SQLite 作为唯一数据库。
+> **Design**: 自由发挥，基于 MUI 默认风格优化。
+> **Question Sync**: 定时自动同步（node-cron 24h）+ 手动触发 `POST /api/sync`。
+
+### Phase 1: Foundation
 
 - [ ] Initialize monorepo structure (client + server + shared)
-- [ ] Set up Vite + React + TypeScript + MUI v7
+- [ ] Set up Vite + React 18 + TypeScript + MUI v7
 - [ ] Set up Fastify + Prisma + SQLite
 - [ ] Implement MUI custom theme (colors, typography, breakpoints)
-- [ ] Build Layout component with responsive top/bottom navigation
+- [ ] Define shared TypeScript types
 
-### Phase 2: Core Quiz (Week 2)
+### Phase 2: Question Sync & API
 
-- [ ] Implement question sync service (server → 16p API)
-- [ ] Build `GET /api/questions` endpoint
+- [ ] Implement question sync service (node-cron 24h, retry + circuit breaker)
+- [ ] Build `GET /api/questions` endpoint (serve from DB cache)
+- [ ] Build `POST /api/sync` endpoint (manual trigger)
+- [ ] Build `GET /api/health` endpoint
+- [ ] Seed initial questions from 16p API on first run
+
+### Phase 3: Test Page (`/test`)
+
 - [ ] Build TestPage with QuestionCard component
-- [ ] Implement Zustand testStore (progress, answers)
-- [ ] Add localStorage persistence for answer state
-- [ ] Implement question card slide animations
-- [ ] Add auto-advance after answer selection
+- [ ] Implement Zustand testStore (progress, answers, navigation)
+- [ ] 7-point Likert scale answer buttons (responsive: 2-col desktop / stacked mobile)
+- [ ] Add localStorage persistence for answer state (resume on reload)
+- [ ] Implement question card slide animations (Framer Motion AnimatePresence)
+- [ ] Add auto-advance after answer selection (400ms delay)
+- [ ] Sticky progress bar with smooth animation
 
-### Phase 3: Results (Week 3)
+### Phase 4: Result Page (`/result/:id`)
 
-- [ ] Build `POST /api/test/submit` endpoint (proxy to 16p API)
+- [ ] Build `POST /api/test/submit` endpoint (proxy to 16p API, store result)
+- [ ] Build `GET /api/test/result/:id` endpoint
 - [ ] Build ResultPage with staggered reveal animation
-- [ ] Implement trait bar chart visualization
-- [ ] Add avatar display (static SVG, Lottie animation optional)
-- [ ] Implement dimension summary (sliding scale visual)
-- [ ] Add share functionality (copy link + image generation)
+- [ ] Personality type code display (large typewriter animation)
+- [ ] Implement 5-trait bar chart visualization (color-coded, animated)
+- [ ] Implement dimension summary (sliding scale visual, e.g., "66% Introverted — 34% Extraverted")
+- [ ] Description cards for each trait (expandable, staggered fade-in)
+- [ ] Static avatar display (SVG from 16p CDN)
+- [ ] Share button (copy result URL)
+- [ ] "Test Again" CTA → navigate to `/test`
 
-### Phase 4: Polish & Responsive (Week 4)
+### Phase 5: Polish & Responsive
 
 - [ ] Mobile-specific layout optimizations
-- [ ] Touch optimization (48px min targets, swipe navigation)
-- [ ] Page transition animations across all routes
+- [ ] Touch optimization (48px min targets)
 - [ ] Error handling and loading states
-- [ ] History page with localStorage-backed results
 - [ ] Performance optimization (lazy loading, bundle analysis)
-- [ ] Cross-browser testing (Chrome, Safari, Firefox, mobile browsers)
+
+### Phase 6 (Deferred)
+
+- [ ] Home Page (`/`)
+- [ ] History Page (`/history`) with localStorage-backed results
+- [ ] Animated avatar (Lottie) on result page
+- [ ] Dark mode toggle
+- [ ] Swipe gesture navigation on mobile
+- [ ] Page transition animations across all routes
+- [ ] PWA support / i18n / auth
 
 ---
 
@@ -742,24 +766,25 @@ mbti-app/
 - [ ] User can complete all 120 questions and receive a personality result
 - [ ] Result displays correct 16-personality type code (e.g., INTJ-A)
 - [ ] Result shows 5-trait dimension breakdown with percentages
-- [ ] Questions auto-sync from 16p API on 24h schedule
+- [ ] Questions auto-sync from 16p API on 24h schedule and stored in SQLite
+- [ ] Client fetches questions from our backend only (never calls 16p API directly)
 - [ ] Responsive layout works on mobile (375px) and desktop (1440px)
 - [ ] Smooth question transition animations (no jank)
-- [ ] Answer progress persists across page refreshes
-- [ ] Test results can be shared via URL
+- [ ] Answer progress persists across page refreshes (localStorage)
+- [ ] Test results can be shared via URL (`/result/:id`)
 
-### Should Have
+### Should Have (Deferred to Phase 6)
 
+- [ ] Home Page (`/`) with hero section and CTA
 - [ ] History page showing past test results
-- [ ] Animated avatar on result page
+- [ ] Animated avatar on result page (Lottie)
 - [ ] Dark mode toggle
-- [ ] Question bank fallback when 16p API is down
+- [ ] Swipe gesture navigation on mobile
 
 ### Nice to Have (v2)
 
 - [ ] User authentication for persistent result tracking
 - [ ] Compare results with friends
-- [ ] Swipe gesture navigation on mobile
 - [ ] PWA support (offline testing)
 - [ ] Internationalization (i18n)
 
